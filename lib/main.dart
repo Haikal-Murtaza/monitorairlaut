@@ -1,15 +1,28 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:monitorairlaut/dashboardpage.dart';
 import 'package:monitorairlaut/datamonitoringpage.dart';
 import 'package:monitorairlaut/profilepage.dart';
 
-void main() => runApp(MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: const FirebaseOptions(
+        apiKey: "AIzaSyDXloYnsHwp4Id7gFWZ1ClDk_XGt5WIYH0",
+        projectId: "monitorairlaut",
+        storageBucket: "monitorairlaut.firebasestorage.app",
+        messagingSenderId: "661878093654",
+        appId: "1:661878093654:android:4f7339cea1bd56afe048f7"),
+  );
+  runApp(MyApp());
+}
 
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Monitoring App',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(primarySwatch: Colors.blue),
       home: MainPage(),
     );
@@ -54,7 +67,7 @@ class _MainPageState extends State<MainPage> {
   }
 }
 
-// HEADER WIDGET UNTUK KONSISTENSI
+// HEADER
 class AppHeader extends StatelessWidget implements PreferredSizeWidget {
   final String title;
 
@@ -64,6 +77,7 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     return AppBar(
       title: Text(title),
+      backgroundColor: Color.fromARGB(0, 50, 115, 212),
       actions: [
         IconButton(
           icon: Icon(Icons.notifications),

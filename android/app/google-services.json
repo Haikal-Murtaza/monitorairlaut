@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "661878093654",
+    "project_id": "monitorairlaut",
+    "storage_bucket": "monitorairlaut.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:661878093654:android:4f7339cea1bd56afe048f7",
+        "android_client_info": {
+          "package_name": "com.example.monitorairlaut"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDXloYnsHwp4Id7gFWZ1ClDk_XGt5WIYH0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

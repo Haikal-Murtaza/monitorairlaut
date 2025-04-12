@@ -8,7 +8,7 @@ class DataMonitoringPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppHeader(title: "Monitoring App"),
+      appBar: AppHeader(title: "Monitoring Data"),
       body: Column(
         children: [
           Padding(
