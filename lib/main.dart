@@ -1,18 +1,19 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:monitorairlaut/dashboardpage.dart';
-import 'package:monitorairlaut/datamonitoringpage.dart';
-import 'package:monitorairlaut/profilepage.dart';
+import 'package:monitorairlaut/mainpage.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: const FirebaseOptions(
-        apiKey: "AIzaSyDXloYnsHwp4Id7gFWZ1ClDk_XGt5WIYH0",
-        projectId: "monitorairlaut",
-        storageBucket: "monitorairlaut.firebasestorage.app",
-        messagingSenderId: "661878093654",
-        appId: "1:661878093654:android:4f7339cea1bd56afe048f7"),
+      apiKey: "AIzaSyDXloYnsHwp4Id7gFWZ1ClDk_XGt5WIYH0",
+      projectId: "monitorairlaut",
+      storageBucket: "monitorairlaut.appspot.com",
+      messagingSenderId: "661878093654",
+      appId: "1:661878093654:android:4f7339cea1bd56afe048f7",
+      databaseURL:
+          "https://monitorairlaut-default-rtdb.asia-southeast1.firebasedatabase.app",
+    ),
   );
   runApp(MyApp());
 }
@@ -25,44 +26,6 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(primarySwatch: Colors.blue),
       home: MainPage(),
-    );
-  }
-}
-
-class MainPage extends StatefulWidget {
-  @override
-  _MainPageState createState() => _MainPageState();
-}
-
-class _MainPageState extends State<MainPage> {
-  int _selectedIndex = 0;
-
-  final List<Widget> _pages = [
-    DashboardPage(),
-    DataMonitoringPage(),
-    ProfilePage(),
-  ];
-
-  void _onItemTapped(int index) {
-    setState(() => _selectedIndex = index);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: _pages[_selectedIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        selectedItemColor: Colors.blue,
-        items: const [
-          BottomNavigationBarItem(
-              icon: Icon(Icons.dashboard), label: 'Dashboard'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.data_usage), label: 'Monitoring'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profil'),
-        ],
-      ),
     );
   }
 }

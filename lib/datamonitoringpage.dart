@@ -1,14 +1,65 @@
 import 'package:flutter/material.dart';
-import 'package:monitorairlaut/main.dart';
+import 'package:firebase_database/firebase_database.dart';
+import 'package:monitorairlaut/detailsensorpage.dart';
 
-class DataMonitoringPage extends StatelessWidget {
-  final List<String> dataPoints = ["Titik 1", "Titik 2", "Titik 3", "Titik 4"];
+class DataMonitoringPage extends StatefulWidget {
+  @override
+  _DataMonitoringPageState createState() => _DataMonitoringPageState();
+}
+
+class _DataMonitoringPageState extends State<DataMonitoringPage> {
+  final DatabaseReference _database = FirebaseDatabase.instance.ref();
   final TextEditingController _searchController = TextEditingController();
+  List<String> _allSensorKeys = [];
+  List<String> _filteredSensorKeys = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _listenSensorKeys();
+    _searchController.addListener(_onSearchChanged);
+  }
+
+  void _listenSensorKeys() {
+    _database.onValue.listen((DatabaseEvent event) {
+      final data = event.snapshot;
+      if (data.exists) {
+        List<String> keys = [];
+        for (var child in data.children) {
+          keys.add(child.key ?? 'Unknown');
+        }
+        setState(() {
+          _allSensorKeys = keys;
+          _filteredSensorKeys = keys;
+        });
+      } else {
+        setState(() {
+          _allSensorKeys = [];
+          _filteredSensorKeys = [];
+        });
+      }
+    });
+  }
+
+  void _onSearchChanged() {
+    String query = _searchController.text.toLowerCase();
+    setState(() {
+      _filteredSensorKeys = _allSensorKeys
+          .where((key) => key.toLowerCase().contains(query))
+          .toList();
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppHeader(title: "Monitoring Data"),
+      appBar: AppBar(title: Text("Monitoring Data")),
       body: Column(
         children: [
           Padding(
@@ -20,27 +71,35 @@ class DataMonitoringPage extends StatelessWidget {
                 border: OutlineInputBorder(),
                 suffixIcon: Icon(Icons.search),
               ),
-              onChanged: (query) {
-                // logika filter bisa ditambahkan
-              },
             ),
           ),
           Expanded(
-            child: ListView.builder(
-              itemCount: dataPoints.length,
-              itemBuilder: (context, index) {
-                return Card(
-                  margin: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  child: ListTile(
-                    leading: Icon(Icons.location_on),
-                    title: Text(dataPoints[index]),
-                    subtitle: Text("Status: Aktif"),
-                    trailing: Icon(Icons.chevron_right),
-                    onTap: () {},
+            child: _filteredSensorKeys.isEmpty
+                ? Center(child: Text('Tidak ada data sensor'))
+                : ListView.builder(
+                    itemCount: _filteredSensorKeys.length,
+                    itemBuilder: (context, index) {
+                      final sensorName = _filteredSensorKeys[index];
+                      return Card(
+                        margin:
+                            EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        child: ListTile(
+                          leading: Icon(Icons.location_on),
+                          title: Text(sensorName),
+                          trailing: Icon(Icons.chevron_right),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    DetailSensorPage(sensorKey: sensorName),
+                              ),
+                            );
+                          },
+                        ),
+                      );
+                    },
                   ),
-                );
-              },
-            ),
           ),
         ],
       ),
