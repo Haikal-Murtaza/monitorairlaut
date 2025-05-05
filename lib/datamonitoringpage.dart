@@ -1,5 +1,7 @@
-import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter/material.dart';
+import 'package:monitorairlaut/addcardpage.dart';
 import 'package:monitorairlaut/detailsensorpage.dart';
 
 class DataMonitoringPage extends StatefulWidget {
@@ -8,46 +10,57 @@ class DataMonitoringPage extends StatefulWidget {
 }
 
 class _DataMonitoringPageState extends State<DataMonitoringPage> {
-  final DatabaseReference _database = FirebaseDatabase.instance.ref();
   final TextEditingController _searchController = TextEditingController();
-  List<String> _allSensorKeys = [];
-  List<String> _filteredSensorKeys = [];
+  List<DocumentSnapshot> _allCards = [];
+  List<DocumentSnapshot> _filteredCards = [];
 
   @override
   void initState() {
     super.initState();
-    _listenSensorKeys();
+    _fetchCards();
+    _fetchSensorKeysFromRealtimeDatabase();
     _searchController.addListener(_onSearchChanged);
   }
 
-  void _listenSensorKeys() {
-    _database.onValue.listen((DatabaseEvent event) {
-      final data = event.snapshot;
-      if (data.exists) {
-        List<String> keys = [];
-        for (var child in data.children) {
-          keys.add(child.key ?? 'Unknown');
-        }
-        setState(() {
-          _allSensorKeys = keys;
-          _filteredSensorKeys = keys;
-        });
-      } else {
-        setState(() {
-          _allSensorKeys = [];
-          _filteredSensorKeys = [];
-        });
-      }
+  void _fetchCards() {
+    FirebaseFirestore.instance
+        .collection('cards')
+        .snapshots()
+        .listen((snapshot) {
+      setState(() {
+        _allCards = snapshot.docs;
+        _filteredCards = snapshot.docs;
+      });
     });
   }
 
   void _onSearchChanged() {
     String query = _searchController.text.toLowerCase();
     setState(() {
-      _filteredSensorKeys = _allSensorKeys
-          .where((key) => key.toLowerCase().contains(query))
-          .toList();
+      _filteredCards = _allCards.where((doc) {
+        final name = doc['nama'].toString().toLowerCase();
+        return name.contains(query);
+      }).toList();
     });
+  }
+
+  Future<void> _fetchSensorKeysFromRealtimeDatabase() async {
+    final ref = FirebaseDatabase.instance.ref();
+    final snapshot = await ref.get();
+    if (snapshot.exists) {
+      snapshot.children.map((child) => child.key ?? '').toList();
+      setState(() {});
+    }
+  }
+
+  Future<String> _getLatestSensorValue(String sensorKey) async {
+    final ref = FirebaseDatabase.instance.ref(sensorKey);
+    final snapshot = await ref.limitToLast(1).get();
+    if (snapshot.exists && snapshot.children.isNotEmpty) {
+      final last = snapshot.children.first.value;
+      return last.toString();
+    }
+    return "Tidak ada data";
   }
 
   @override
@@ -60,6 +73,18 @@ class _DataMonitoringPageState extends State<DataMonitoringPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text("Monitoring Data")),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => AddCardPage(),
+            ),
+          );
+        },
+        tooltip: 'Tambah Card',
+        child: Icon(Icons.add),
+      ),
       body: Column(
         children: [
           Padding(
@@ -74,29 +99,48 @@ class _DataMonitoringPageState extends State<DataMonitoringPage> {
             ),
           ),
           Expanded(
-            child: _filteredSensorKeys.isEmpty
+            child: _filteredCards.isEmpty
                 ? Center(child: Text('Tidak ada data sensor'))
                 : ListView.builder(
-                    itemCount: _filteredSensorKeys.length,
+                    itemCount: _filteredCards.length,
                     itemBuilder: (context, index) {
-                      final sensorName = _filteredSensorKeys[index];
-                      return Card(
-                        margin:
-                            EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        child: ListTile(
-                          leading: Icon(Icons.location_on),
-                          title: Text(sensorName),
-                          trailing: Icon(Icons.chevron_right),
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    DetailSensorPage(sensorKey: sensorName),
+                      final doc = _filteredCards[index];
+                      final nama = doc['nama'];
+                      final deskripsi = doc['deskripsi'];
+                      final sensorKey = doc['sensorKey'];
+
+                      return FutureBuilder<String>(
+                        future: _getLatestSensorValue(sensorKey),
+                        builder: (context, snapshot) {
+                          final sensorValue =
+                              snapshot.connectionState == ConnectionState.done
+                                  ? snapshot.data
+                                  : "Memuat...";
+                          return Card(
+                            margin: EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 6),
+                            child: ListTile(
+                              title: Text(nama),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(deskripsi),
+                                  Text("Data Sensor: $sensorValue"),
+                                ],
                               ),
-                            );
-                          },
-                        ),
+                              trailing: Icon(Icons.chevron_right),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        DetailSensorPage(nama: nama,sensorkey: sensorKey, deskripsi: deskripsi),
+                                  ),
+                                );
+                              },
+                            ),
+                          );
+                        },
                       );
                     },
                   ),

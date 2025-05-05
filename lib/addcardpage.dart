@@ -83,7 +83,7 @@ class _AddCardPageState extends State<AddCardPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Tambah Card')),
+      appBar: AppBar(title: Text('Tambah Titik Monitoring')),
       body: _loadingSensors
           ? Center(child: CircularProgressIndicator())
           : Padding(
