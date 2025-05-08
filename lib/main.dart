@@ -29,27 +29,3 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-
-// HEADER
-class AppHeader extends StatelessWidget implements PreferredSizeWidget {
-  final String title;
-
-  const AppHeader({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return AppBar(
-      title: Text(title),
-      backgroundColor: Color.fromARGB(0, 50, 115, 212),
-      actions: [
-        IconButton(
-          icon: Icon(Icons.notifications),
-          onPressed: () {},
-        ),
-      ],
-    );
-  }
-
-  @override
-  Size get preferredSize => Size.fromHeight(kToolbarHeight);
-}
