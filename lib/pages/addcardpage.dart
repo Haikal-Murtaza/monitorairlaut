@@ -1,6 +1,7 @@
+import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:flutter/material.dart';
+import 'package:monitorairlaut/widgets/card_form.dart';
 
 class AddCardPage extends StatefulWidget {
   @override
@@ -28,10 +29,7 @@ class _AddCardPageState extends State<AddCardPage> {
       if (!mounted) return;
 
       if (snapshot.exists) {
-        List<String> keys = [];
-        for (var child in snapshot.children) {
-          keys.add(child.key ?? 'Unknown');
-        }
+        final keys = snapshot.children.map((child) => child.key ?? 'Unknown').toList();
         setState(() {
           _sensorKeys = keys;
           _loadingSensors = false;
@@ -42,7 +40,7 @@ class _AddCardPageState extends State<AddCardPage> {
           _loadingSensors = false;
         });
       }
-    } catch (e) {
+    } catch (_) {
       if (!mounted) return;
       setState(() {
         _sensorKeys = [];
@@ -68,9 +66,7 @@ class _AddCardPageState extends State<AddCardPage> {
       'sensorKey': _selectedSensor,
     });
 
-    if (mounted) {
-      Navigator.pop(context);
-    }
+    if (mounted) Navigator.pop(context);
   }
 
   @override
@@ -88,41 +84,17 @@ class _AddCardPageState extends State<AddCardPage> {
           ? Center(child: CircularProgressIndicator())
           : Padding(
               padding: const EdgeInsets.all(16.0),
-              child: Column(
-                children: [
-                  TextField(
-                    controller: _nameController,
-                    decoration: InputDecoration(labelText: 'Nama Card'),
-                  ),
-                  SizedBox(height: 10),
-                  TextField(
-                    controller: _descController,
-                    decoration: InputDecoration(labelText: 'Deskripsi'),
-                  ),
-                  SizedBox(height: 10),
-                  DropdownButtonFormField<String>(
-                    value: _selectedSensor,
-                    items: _sensorKeys.map((sensor) {
-                      return DropdownMenuItem(
-                        value: sensor,
-                        child: Text(sensor),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      if (mounted) {
-                        setState(() {
-                          _selectedSensor = value;
-                        });
-                      }
-                    },
-                    decoration: InputDecoration(labelText: 'Pilih Sensor'),
-                  ),
-                  SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: _saveCard,
-                    child: Text('Simpan'),
-                  )
-                ],
+              child: CardForm(
+                nameController: _nameController,
+                descController: _descController,
+                sensorKeys: _sensorKeys,
+                selectedSensor: _selectedSensor,
+                onSensorChanged: (value) {
+                  setState(() {
+                    _selectedSensor = value;
+                  });
+                },
+                onSave: _saveCard,
               ),
             ),
     );

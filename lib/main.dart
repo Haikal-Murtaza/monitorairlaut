@@ -1,6 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:monitorairlaut/mainpage.dart';
+import 'package:monitorairlaut/pages/datamonitoringpage.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,7 +25,7 @@ class MyApp extends StatelessWidget {
       title: 'Monitoring App',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(primarySwatch: Colors.blue),
-      home: MainPage(),
+      home: DataMonitoringPage(),
     );
   }
 }
