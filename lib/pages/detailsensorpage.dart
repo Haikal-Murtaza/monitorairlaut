@@ -159,15 +159,41 @@ class _DetailSensorPageState extends State<DetailSensorPage> {
                   ),
                   builder: (context, snapshot) {
                     String predictionResult = "Memuat...";
+                    String keterangan = "";
+
                     if (snapshot.connectionState == ConnectionState.done) {
-                      predictionResult = snapshot.hasError
-                          ? "Error"
-                          : snapshot.data == "1"
-                              ? "Tidak Tercemar"
-                              : "Tercemar";
+                      if (snapshot.hasError) {
+                        predictionResult = "Error";
+                        keterangan = "Terjadi kesalahan saat memuat data.";
+                      } else {
+                        final result = snapshot.data;
+                        predictionResult =
+                            result == "1" ? "Tidak Tercemar" : "Tercemar";
+
+                        final ph = (latest['ph'] ?? 0).toDouble();
+                        final tds = (latest['tds'] ?? 0).toDouble();
+                        final turbidity = (latest['turbidity'] ?? 0).toDouble();
+
+                        if (predictionResult == "Tercemar") {
+                          List<String> reasons = [];
+
+                          if (ph <= 7 || ph >= 8.5) reasons.add("pH");
+                          if (tds <= 18000 || tds >= 35000) reasons.add("TDS");
+                          if (turbidity <= 1 || turbidity >= 5) {
+                            reasons.add("Turbidity");
+                          }
+
+                          keterangan = reasons.isNotEmpty
+                              ? "Air laut tercemar disebabkan tingkat ${reasons.join(', ')} yang tidak sesuai dengan standar air tidak tercemar."
+                              : "Air laut tercemar namun penyebab tidak diketahui.";
+                        } else {
+                          keterangan = "Air laut dalam keadaan baik";
+                        }
+                      }
                     }
 
                     return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -182,7 +208,88 @@ class _DetailSensorPageState extends State<DetailSensorPage> {
                           ],
                         ),
                         SizedBox(height: 16),
-                        ValueCard(label: "Kualitas", value: predictionResult),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Expanded(
+                                child: ValueCard(
+                                    label: "Kualitas",
+                                    value: predictionResult)),
+                          ],
+                        ),
+                        SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Expanded(
+                                child: ValueCard(
+                                    label: "Keterangan", value: keterangan)),
+                          ],
+                        ),
+                        SizedBox(height: 16),
+                        Text(
+                          "Standar Air Laut Tidak Tercemar",
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                        SizedBox(height: 8),
+                        Table(
+                          border: TableBorder.all(color: Colors.grey),
+                          columnWidths: const {
+                            0: FlexColumnWidth(2),
+                            1: FlexColumnWidth(3),
+                          },
+                          children: [
+                            TableRow(
+                              decoration:
+                                  BoxDecoration(color: Colors.grey[300]),
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text("Parameter",
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold)),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text("Rentang Nilai (Aman)",
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold)),
+                                ),
+                              ],
+                            ),
+                            TableRow(children: [
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text("pH"),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text("7 - 8.5"),
+                              ),
+                            ]),
+                            TableRow(children: [
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text("TDS"),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text("18000 - 35000"),
+                              ),
+                            ]),
+                            TableRow(children: [
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text("Turbidity"),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text("0 - 5 NTU"),
+                              ),
+                            ]),
+                          ],
+                        ),
                       ],
                     );
                   },
