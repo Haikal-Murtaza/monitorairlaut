@@ -6,13 +6,14 @@ class SensorCardTile extends StatelessWidget {
   final String nama;
   final String deskripsi;
   final String sensorKey;
+  final String cardid;
 
   const SensorCardTile({
     required this.nama,
-    required this.deskripsi,
     required this.sensorKey,
+    required this.deskripsi,
+    required this.cardid,
   });
-
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<String>(
@@ -41,6 +42,7 @@ class SensorCardTile extends StatelessWidget {
                     nama: nama,
                     sensorkey: sensorKey,
                     deskripsi: deskripsi,
+                    cardid: cardid,
                   ),
                 ),
               );

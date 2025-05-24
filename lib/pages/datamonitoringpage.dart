@@ -124,10 +124,10 @@ class _DataMonitoringPageState extends State<DataMonitoringPage> {
                         return Padding(
                           padding: const EdgeInsets.symmetric(vertical: 4.0),
                           child: SensorCardTile(
-                            nama: doc['nama'],
-                            deskripsi: doc['deskripsi'],
-                            sensorKey: doc['sensorKey'],
-                          ),
+                              nama: doc['nama'],
+                              deskripsi: doc['deskripsi'],
+                              sensorKey: doc['sensorKey'],
+                              cardid: doc.id),
                         );
                       },
                     ),

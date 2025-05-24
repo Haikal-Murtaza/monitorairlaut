@@ -4,8 +4,22 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:monitorairlaut/widgets/card_form.dart';
 
 class AddCardPage extends StatefulWidget {
+  final bool isEdit;
+  final String? sensorKey;
+  final String? nama;
+  final String? deskripsi;
+  final String? cardid;
+
+  const AddCardPage({
+    this.isEdit = false,
+    this.sensorKey,
+    this.nama,
+    this.deskripsi,
+    this.cardid,
+  });
+
   @override
-  _AddCardPageState createState() => _AddCardPageState();
+  State<AddCardPage> createState() => _AddCardPageState();
 }
 
 class _AddCardPageState extends State<AddCardPage> {
@@ -20,6 +34,11 @@ class _AddCardPageState extends State<AddCardPage> {
   @override
   void initState() {
     super.initState();
+    if (widget.isEdit) {
+      _nameController.text = widget.nama ?? '';
+      _descController.text = widget.deskripsi ?? '';
+      _selectedSensor = widget.sensorKey;
+    }
     _fetchSensorKeys();
   }
 
@@ -29,7 +48,8 @@ class _AddCardPageState extends State<AddCardPage> {
       if (!mounted) return;
 
       if (snapshot.exists) {
-        final keys = snapshot.children.map((child) => child.key ?? 'Unknown').toList();
+        final keys =
+            snapshot.children.map((child) => child.key ?? 'Unknown').toList();
         setState(() {
           _sensorKeys = keys;
           _loadingSensors = false;
@@ -60,13 +80,37 @@ class _AddCardPageState extends State<AddCardPage> {
       return;
     }
 
-    await FirebaseFirestore.instance.collection('cards').add({
-      'nama': nama,
-      'deskripsi': deskripsi,
-      'sensorKey': _selectedSensor,
-    });
+    try {
+      if (widget.isEdit) {
+        await FirebaseFirestore.instance
+            .collection('cards')
+            .doc(widget.cardid)
+            .update({
+          'nama': nama,
+          'deskripsi': deskripsi,
+          'sensorKey': _selectedSensor,
+        });
+      } else {
+        await FirebaseFirestore.instance.collection('cards').add({
+          'nama': nama,
+          'deskripsi': deskripsi,
+          'sensorKey': _selectedSensor,
+        });
+      }
 
-    if (mounted) Navigator.pop(context);
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(widget.isEdit
+                ? "Card berhasil diperbarui"
+                : "Card berhasil ditambahkan")));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text("Terjadi kesalahan: $e")));
+      }
+    }
   }
 
   @override
@@ -79,7 +123,11 @@ class _AddCardPageState extends State<AddCardPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Tambah Titik Monitoring')),
+      appBar: AppBar(
+        title: Text(widget.isEdit
+            ? "Edit Titik Monitoring"
+            : "Tambah Titik Monitoring"),
+      ),
       body: _loadingSensors
           ? Center(child: CircularProgressIndicator())
           : Padding(

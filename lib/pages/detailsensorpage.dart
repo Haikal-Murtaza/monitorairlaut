@@ -1,7 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:monitorairlaut/pages/addcardpage.dart';
 import '../../services/prediction_service.dart';
-import '../../widgets/line_chart_widget.dart';
 import '../../widgets/value_card_widget.dart';
 import '../../widgets/table_widget.dart';
 
@@ -9,11 +11,13 @@ class DetailSensorPage extends StatefulWidget {
   final String nama;
   final String sensorkey;
   final String deskripsi;
+  final String cardid;
 
-  DetailSensorPage({
+  const DetailSensorPage({
     required this.nama,
     required this.sensorkey,
     required this.deskripsi,
+    required this.cardid,
   });
 
   @override
@@ -25,10 +29,82 @@ class _DetailSensorPageState extends State<DetailSensorPage> {
   int currentPage = 0;
   final int itemsPerPage = 5;
 
+  Future<void> deleteCard() async {
+    try {
+      final firestore = FirebaseFirestore.instance;
+      await firestore.collection('cards').doc(widget.cardid).delete();
+
+      if (mounted) {
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Card berhasil dihapus")),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Gagal menghapus card: $e")),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Cek apakah user sudah login
+    final currentUser = FirebaseAuth.instance.currentUser;
+
     return Scaffold(
-      appBar: AppBar(title: Text(widget.nama)),
+      appBar: AppBar(
+        title: Text(widget.nama),
+        actions: [
+          if (currentUser != null) ...[
+            IconButton(
+              icon: Icon(Icons.edit),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => AddCardPage(
+                      isEdit: true,
+                      sensorKey: widget.sensorkey,
+                      nama: widget.nama,
+                      deskripsi: widget.deskripsi,
+                      cardid: widget.cardid,
+                    ),
+                  ),
+                );
+              },
+            ),
+            IconButton(
+              icon: Icon(Icons.delete),
+              onPressed: () async {
+                final confirm = await showDialog<bool>(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: Text("Konfirmasi Hapus"),
+                    content:
+                        Text("Apakah Anda yakin ingin menghapus card ini?"),
+                    actions: [
+                      TextButton(
+                        child: Text("Batal"),
+                        onPressed: () => Navigator.of(context).pop(false),
+                      ),
+                      TextButton(
+                        child: Text("Hapus"),
+                        onPressed: () => Navigator.of(context).pop(true),
+                      ),
+                    ],
+                  ),
+                );
+                if (confirm == true) {
+                  await deleteCard();
+                }
+              },
+            ),
+          ],
+        ],
+      ),
       body: StreamBuilder<DatabaseEvent>(
         stream: _database.child(widget.sensorkey).onValue,
         builder: (context, snapshot) {
@@ -87,8 +163,8 @@ class _DetailSensorPageState extends State<DetailSensorPage> {
                       predictionResult = snapshot.hasError
                           ? "Error"
                           : snapshot.data == "1"
-                              ? "Layak"
-                              : "Tidak Layak";
+                              ? "Tidak Tercemar"
+                              : "Tercemar";
                     }
 
                     return Column(
@@ -106,13 +182,13 @@ class _DetailSensorPageState extends State<DetailSensorPage> {
                           ],
                         ),
                         SizedBox(height: 16),
-                        ValueCard(label: "Prediksi", value: predictionResult),
+                        ValueCard(label: "Kualitas", value: predictionResult),
                       ],
                     );
                   },
                 ),
                 SizedBox(height: 24),
-                Text("Tabel Data",
+                Text("Data pH, TDS, Turbidity Air Laut ${widget.nama}",
                     style:
                         TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 SizedBox(height: 8),
@@ -135,26 +211,6 @@ class _DetailSensorPageState extends State<DetailSensorPage> {
                     ),
                   ],
                 ),
-                SizedBox(height: 24),
-                Text("Grafik pH",
-                    style: TextStyle(fontWeight: FontWeight.bold)),
-                SizedBox(
-                    height: 200,
-                    child: LineChartWidget(values: phList, color: Colors.blue)),
-                SizedBox(height: 16),
-                Text("Grafik TDS",
-                    style: TextStyle(fontWeight: FontWeight.bold)),
-                SizedBox(
-                    height: 200,
-                    child:
-                        LineChartWidget(values: tdsList, color: Colors.green)),
-                SizedBox(height: 16),
-                Text("Grafik Turbidity",
-                    style: TextStyle(fontWeight: FontWeight.bold)),
-                SizedBox(
-                    height: 200,
-                    child: LineChartWidget(
-                        values: turbidityList, color: Colors.orange)),
               ],
             ),
           );
