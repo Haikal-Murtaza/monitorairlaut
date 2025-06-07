@@ -8,44 +8,62 @@ class SensorTable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Table(
-      border: TableBorder.all(),
-      columnWidths: {
-        0: FlexColumnWidth(2),
-        1: FlexColumnWidth(1),
-        2: FlexColumnWidth(1),
-        3: FlexColumnWidth(1),
-      },
-      children: [
-        TableRow(
-          decoration: BoxDecoration(color: Colors.grey[300]),
-          children: [
-            _buildHeader('Timestamp'),
-            _buildHeader('pH'),
-            _buildHeader('TDS'),
-            _buildHeader('Turbidity'),
-          ],
-        ),
-        ...entries.map((entry) {
-          final timestamp = entry.key.toString();
-          final value = entry.value as Map<dynamic, dynamic>;
-          return TableRow(children: [
-            _buildCell(timestamp),
-            _buildCell((value['ph'] ?? '-').toString()),
-            _buildCell((value['tds'] ?? '-').toString()),
-            _buildCell((value['turbidity'] ?? '-').toString()),
-          ]);
-        }),
-      ],
-    );
+        border: TableBorder.all(color: Colors.grey),
+        columnWidths: const {
+          0: FixedColumnWidth(50),
+          1: FixedColumnWidth(100),
+          2: FixedColumnWidth(70),
+          3: FixedColumnWidth(70),
+          4: FixedColumnWidth(80),
+        },
+        children: [
+          TableRow(
+              decoration: BoxDecoration(color: Colors.grey[300]),
+              children: [
+                _headerCell("No"),
+                _headerCell("Tanggal"),
+                _headerCell("pH"),
+                _headerCell("TDS"),
+                _headerCell("Turbidity"),
+              ]),
+          for (int i = 0; i < entries.length; i++)
+            TableRow(children: [
+              _cell((i + 1).toString()),
+              _cell(_formatTimestamp(entries[i].key.toString())),
+              _cell(entries[i].value['ph'].toString()),
+              _cell(entries[i].value['tds'].toString()),
+              _cell(entries[i].value['turbidity'].toString()),
+            ]),
+        ]);
   }
 
-  Widget _buildHeader(String text) => Padding(
-        padding: EdgeInsets.all(8),
-        child: Text(text, style: TextStyle(fontWeight: FontWeight.bold)),
-      );
+  String _formatTimestamp(String timestamp) {
+    try {
+      final parts = timestamp.split('_');
+      if (parts.length != 2) return timestamp;
 
-  Widget _buildCell(String text) => Padding(
-        padding: EdgeInsets.all(8),
-        child: Text(text),
+      final datePart = parts[0];
+      final timePart = parts[1];
+
+      final dateFormatted = datePart.split('-').reversed.join('-');
+      final timeFormatted = timePart.replaceAll('-', ':');
+
+      return '$dateFormatted\n$timeFormatted';
+    } catch (e) {
+      return timestamp;
+    }
+  }
+
+  Widget _headerCell(String text) => Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Text(
+        text,
+        style: TextStyle(fontWeight: FontWeight.bold),
+        textAlign: TextAlign.center,
+      ));
+
+  Widget _cell(String text) => Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Text(text, textAlign: TextAlign.center),
       );
 }
