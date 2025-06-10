@@ -101,7 +101,7 @@ class _DetailSensorPageState extends State<DetailSensorPage> {
   Widget _buildStandardTable() {
     final data = {
       "pH": "7 - 8.5",
-      "TDS": "18000 - 35000",
+      "TDS": "18000 - 22000 ppm",
       "Turbidity": "0 - 5 NTU",
     };
 
@@ -217,7 +217,10 @@ class _DetailSensorPageState extends State<DetailSensorPage> {
               Text("Data pH, TDS, Turbidity Air Laut ${widget.nama}",
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               SizedBox(height: 8),
-              SensorTable(entries: currentPageEntries),
+              SensorTable(
+                entries: currentPageEntries,
+                startIndex: start,
+              ),
               SizedBox(height: 8),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
