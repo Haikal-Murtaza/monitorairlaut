@@ -70,7 +70,6 @@ class _DetailSensorPageState extends State<DetailSensorPage> {
       children: [
         Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
           ValueCard(label: "pH", value: latest['ph'].toString()),
-          ValueCard(label: "TDS", value: latest['tds'].toString()),
           ValueCard(label: "Turbidity", value: latest['turbidity'].toString())
         ]),
         SizedBox(height: 16),
@@ -85,12 +84,11 @@ class _DetailSensorPageState extends State<DetailSensorPage> {
     );
   }
 
-  String _getKeterangan(String pred, double ph, double tds, double turbidity) {
+  String _getKeterangan(String pred, double ph, double turbidity) {
     if (pred != "Tercemar") return "Air laut dalam keadaan baik";
 
     final reasons = <String>[];
     if (ph <= 7 || ph >= 8.5) reasons.add("pH");
-    if (tds <= 18000 || tds >= 35000) reasons.add("TDS");
     if (turbidity <= 1 || turbidity >= 5) reasons.add("Turbidity");
 
     return reasons.isNotEmpty
@@ -101,7 +99,6 @@ class _DetailSensorPageState extends State<DetailSensorPage> {
   Widget _buildStandardTable() {
     final data = {
       "pH": "7 - 8.5",
-      "TDS": "18000 - 22000 ppm",
       "Turbidity": "0 - 5 NTU",
     };
 
@@ -113,7 +110,7 @@ class _DetailSensorPageState extends State<DetailSensorPage> {
           decoration: BoxDecoration(color: Colors.grey[300]),
           children: [
             _tableCell("Parameter", isBold: true),
-            _tableCell("Rentang Nilai (Aman)", isBold: true),
+            _tableCell("Rentang Nilai", isBold: true),
           ],
         ),
         ...data.entries.map((e) => TableRow(children: [
@@ -182,7 +179,6 @@ class _DetailSensorPageState extends State<DetailSensorPage> {
           final currentPageEntries = entries.sublist(start, end);
 
           final ph = (latest['ph'] ?? 0).toDouble();
-          final tds = (latest['tds'] ?? 0).toDouble();
           final turbidity = (latest['turbidity'] ?? 0).toDouble();
 
           return SingleChildScrollView(
@@ -194,14 +190,14 @@ class _DetailSensorPageState extends State<DetailSensorPage> {
               Text(widget.deskripsi, style: TextStyle(fontSize: 16)),
               SizedBox(height: 16),
               FutureBuilder<String>(
-                future: getPredictionFromAPI(ph, tds, turbidity),
+                future: getPredictionFromAPI(ph, turbidity),
                 builder: (context, snapshot) {
                   final result = snapshot.data;
                   final prediction =
                       (result == "1") ? "Tidak Tercemar" : "Tercemar";
                   final keterangan =
                       snapshot.connectionState == ConnectionState.done
-                          ? _getKeterangan(prediction, ph, tds, turbidity)
+                          ? _getKeterangan(prediction, ph, turbidity)
                           : "Memuat...";
 
                   return _buildValueCards(latest,
@@ -214,7 +210,7 @@ class _DetailSensorPageState extends State<DetailSensorPage> {
               SizedBox(height: 8),
               _buildStandardTable(),
               SizedBox(height: 24),
-              Text("Data pH, TDS, Turbidity Air Laut ${widget.nama}",
+              Text("Data pH, Turbidity Air Laut ${widget.nama}",
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               SizedBox(height: 8),
               SensorTable(
