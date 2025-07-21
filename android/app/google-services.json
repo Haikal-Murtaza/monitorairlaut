@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "661878093654",
+    "firebase_url": "https://monitorairlaut-default-rtdb.asia-southeast1.firebasedatabase.app",
     "project_id": "monitorairlaut",
     "storage_bucket": "monitorairlaut.firebasestorage.app"
   },

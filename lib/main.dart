@@ -1,20 +1,14 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:monitorairlaut/pages/datamonitoringpage.dart';
+import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
-    options: const FirebaseOptions(
-      apiKey: "AIzaSyDXloYnsHwp4Id7gFWZ1ClDk_XGt5WIYH0",
-      projectId: "monitorairlaut",
-      storageBucket: "monitorairlaut.appspot.com",
-      messagingSenderId: "661878093654",
-      appId: "1:661878093654:android:4f7339cea1bd56afe048f7",
-      databaseURL:
-          "https://monitorairlaut-default-rtdb.asia-southeast1.firebasedatabase.app",
-    ),
+    options: DefaultFirebaseOptions.currentPlatform,
   );
+
   runApp(MyApp());
 }
 
