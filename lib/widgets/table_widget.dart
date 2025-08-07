@@ -27,8 +27,8 @@ class SensorTable extends StatelessWidget {
             _headerCell("No"),
             _headerCell("Tanggal"),
             _headerCell("pH"),
-            _headerCell("TDS"),
             _headerCell("Turbidity"),
+            _headerCell("Kualitas"),
           ],
         ),
         for (int i = 0; i < entries.length; i++)
@@ -36,8 +36,8 @@ class SensorTable extends StatelessWidget {
             _cell((startIndex + i + 1).toString()),
             _cell(_formatTimestamp(entries[i].key.toString())),
             _cell(entries[i].value['ph'].toString()),
-            _cell(entries[i].value['tds'].toString()),
             _cell(entries[i].value['turbidity'].toString()),
+            _cell(entries[i].value['kualitas'].toString()),
           ]),
       ],
     );
