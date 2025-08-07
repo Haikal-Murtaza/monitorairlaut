@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:monitorairlaut/services/sensor_service.dart';
 import '../../services/prediction_service.dart';
 import '../../widgets/value_card_widget.dart';
 import '../../widgets/table_widget.dart';
@@ -89,7 +90,7 @@ class _DetailSensorPageState extends State<DetailSensorPage> {
 
     final reasons = <String>[];
     if (ph <= 7 || ph >= 8.5) reasons.add("pH");
-    if (turbidity <= 1 || turbidity >= 5) reasons.add("Turbidity");
+    if (turbidity >= 5) reasons.add("Turbidity");
 
     return reasons.isNotEmpty
         ? "Tercemar disebabkan tingkat ${reasons.join(', ')}."
@@ -152,6 +153,26 @@ class _DetailSensorPageState extends State<DetailSensorPage> {
                   ),
                 ),
                 IconButton(icon: Icon(Icons.delete), onPressed: _confirmDelete),
+                IconButton(
+                  icon: Icon(Icons.refresh,
+                      color: const Color.fromARGB(255, 14, 13, 13)),
+                  tooltip: 'Klasifikasi Ulang',
+                  onPressed: () async {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Memproses Data...')),
+                    );
+                    try {
+                      await classifyAllSensorDataByKey(widget.sensorkey);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Proses selesai')),
+                      );
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Gagal memproses data: $e')),
+                      );
+                    }
+                  },
+                ),
               ]
             : [],
       ),
@@ -210,7 +231,7 @@ class _DetailSensorPageState extends State<DetailSensorPage> {
               SizedBox(height: 8),
               _buildStandardTable(),
               SizedBox(height: 24),
-              Text("Data pH, Turbidity Air Laut ${widget.nama}",
+              Text("Data historis Air Laut titik monitoring ${widget.nama} ",
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               SizedBox(height: 8),
               SensorTable(

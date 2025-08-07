@@ -37,7 +37,7 @@ class SensorTable extends StatelessWidget {
             _cell(_formatTimestamp(entries[i].key.toString())),
             _cell(entries[i].value['ph'].toString()),
             _cell(entries[i].value['turbidity'].toString()),
-            _cell(entries[i].value['kualitas'].toString()),
+            _cell(entries[i].value['prediction_label'].toString()),
           ]),
       ],
     );

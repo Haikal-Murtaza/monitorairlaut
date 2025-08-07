@@ -14,6 +14,6 @@ Future<String> getPredictionFromAPI(double ph, double turbidity) async {
     final data = jsonDecode(response.body);
     return data['prediction'].toString();
   } else {
-    return "Error";
+    throw Exception('Failed to get prediction from API');
   }
 }
