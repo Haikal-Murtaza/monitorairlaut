@@ -4,9 +4,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:monitorairlaut/services/sensor_service.dart';
 import '../../services/prediction_service.dart';
-import '../../widgets/value_card_widget.dart';
 import '../../widgets/table_widget.dart';
 import 'addcardpage.dart';
+import '../../widgets/classification_chart.dart';
+import '../../widgets/trend_chart.dart';
+import '../../widgets/standard_table.dart';
+import '../../widgets/value_cards.dart';
 
 class DetailSensorPage extends StatefulWidget {
   final String nama, sensorkey, deskripsi, cardid;
@@ -65,26 +68,6 @@ class _DetailSensorPageState extends State<DetailSensorPage> {
     if (confirm == true) await _deleteCard();
   }
 
-  Widget _buildValueCards(
-      Map<dynamic, dynamic> latest, String quality, String note) {
-    return Column(
-      children: [
-        Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-          ValueCard(label: "pH", value: latest['ph'].toString()),
-          ValueCard(label: "Turbidity", value: latest['turbidity'].toString())
-        ]),
-        SizedBox(height: 16),
-        Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [ValueCard(label: "Kualitas", value: quality)]),
-        SizedBox(height: 16),
-        SizedBox(
-            width: double.infinity,
-            child: ValueCard(label: "Keterangan", value: note))
-      ],
-    );
-  }
-
   String _getKeterangan(String pred, double ph, double turbidity) {
     if (pred != "Tercemar") return "Air laut dalam keadaan baik";
 
@@ -96,37 +79,6 @@ class _DetailSensorPageState extends State<DetailSensorPage> {
         ? "Tercemar disebabkan tingkat ${reasons.join(', ')}."
         : "Tercemar namun penyebab tidak diketahui.";
   }
-
-  Widget _buildStandardTable() {
-    final data = {
-      "pH": "7 - 8.5",
-      "Turbidity": "0 - 5 NTU",
-    };
-
-    return Table(
-      border: TableBorder.all(color: Colors.grey),
-      columnWidths: {0: FlexColumnWidth(2), 1: FlexColumnWidth(3)},
-      children: [
-        TableRow(
-          decoration: BoxDecoration(color: Colors.grey[300]),
-          children: [
-            _tableCell("Parameter", isBold: true),
-            _tableCell("Rentang Nilai", isBold: true),
-          ],
-        ),
-        ...data.entries.map((e) => TableRow(children: [
-              _tableCell(e.key),
-              _tableCell(e.value),
-            ])),
-      ],
-    );
-  }
-
-  Widget _tableCell(String text, {bool isBold = false}) => Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Text(text,
-            style: isBold ? TextStyle(fontWeight: FontWeight.bold) : null),
-      );
 
   @override
   Widget build(BuildContext context) {
@@ -204,59 +156,72 @@ class _DetailSensorPageState extends State<DetailSensorPage> {
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16),
-            child:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text('Deskripsi:',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              Text(widget.deskripsi, style: TextStyle(fontSize: 16)),
-              SizedBox(height: 16),
-              FutureBuilder<String>(
-                future: getPredictionFromAPI(ph, turbidity),
-                builder: (context, snapshot) {
-                  final result = snapshot.data;
-                  final prediction =
-                      (result == "1") ? "Tidak Tercemar" : "Tercemar";
-                  final keterangan =
-                      snapshot.connectionState == ConnectionState.done
-                          ? _getKeterangan(prediction, ph, turbidity)
-                          : "Memuat...";
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Deskripsi:',
+                    style:
+                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                Text(widget.deskripsi, style: TextStyle(fontSize: 16)),
+                SizedBox(height: 16),
+                FutureBuilder<String>(
+                  future: getPredictionFromAPI(ph, turbidity),
+                  builder: (context, snapshot) {
+                    final result = snapshot.data;
+                    final prediction =
+                        (result == "1") ? "Tidak Tercemar" : "Tercemar";
+                    final keterangan =
+                        snapshot.connectionState == ConnectionState.done
+                            ? _getKeterangan(prediction, ph, turbidity)
+                            : "Memuat...";
 
-                  return _buildValueCards(latest,
-                      snapshot.hasError ? "Error" : prediction, keterangan);
-                },
-              ),
-              SizedBox(height: 16),
-              Text("Standar Air Laut Tidak Tercemar",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              SizedBox(height: 8),
-              _buildStandardTable(),
-              SizedBox(height: 24),
-              Text("Data historis Air Laut titik monitoring ${widget.nama} ",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              SizedBox(height: 8),
-              SensorTable(
-                entries: currentPageEntries,
-                startIndex: start,
-              ),
-              SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  ElevatedButton(
-                    onPressed: currentPage > 0
-                        ? () => setState(() => currentPage--)
-                        : null,
-                    child: Text("Sebelumnya"),
-                  ),
-                  ElevatedButton(
-                    onPressed: end < entries.length
-                        ? () => setState(() => currentPage++)
-                        : null,
-                    child: Text("Selanjutnya"),
-                  ),
-                ],
-              ),
-            ]),
+                    return ValueCardsWidget(
+                      latest: latest,
+                      quality: snapshot.hasError ? "Error" : prediction,
+                      note: keterangan,
+                    );
+                  },
+                ),
+                SizedBox(height: 16),
+                StandardTableWidget(),
+                SizedBox(height: 24),
+                Text("Tren pH dan Turbidity",
+                    style:
+                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                SizedBox(height: 8),
+                TrendChartWidget(entries: entries),
+                SizedBox(height: 24),
+                Text("Persebaran Kualitas Air",
+                    style:
+                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                SizedBox(height: 8),
+                ClassificationChartWidget(entries: entries),
+                SizedBox(height: 16),
+                Text("Data historis Air Laut titik monitoring ${widget.nama}",
+                    style:
+                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                SizedBox(height: 8),
+                SensorTable(entries: currentPageEntries, startIndex: start),
+                SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    ElevatedButton(
+                      onPressed: currentPage > 0
+                          ? () => setState(() => currentPage--)
+                          : null,
+                      child: Text("Sebelumnya"),
+                    ),
+                    ElevatedButton(
+                      onPressed: end < entries.length
+                          ? () => setState(() => currentPage++)
+                          : null,
+                      child: Text("Selanjutnya"),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           );
         },
       ),
