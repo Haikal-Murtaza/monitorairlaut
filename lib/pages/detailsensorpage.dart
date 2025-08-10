@@ -183,26 +183,30 @@ class _DetailSensorPageState extends State<DetailSensorPage> {
                   },
                 ),
                 SizedBox(height: 16),
+                Text("Table Standar Air Laut",
+                    style:
+                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 StandardTableWidget(),
                 SizedBox(height: 24),
-                Text("Tren pH dan Turbidity",
+                Text("Tren pH dan Turbidity pada 30 Data Terbaru",
                     style:
                         TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                SizedBox(height: 8),
+                SizedBox(height: 5),
                 TrendChartWidget(entries: entries),
                 SizedBox(height: 24),
-                Text("Persebaran Kualitas Air",
+                Text(
+                    "Persebaran Kualitas Air Laut titik monitoring ${widget.nama}",
                     style:
                         TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                SizedBox(height: 8),
+                SizedBox(height: 5),
                 ClassificationChartWidget(entries: entries),
-                SizedBox(height: 16),
+                SizedBox(height: 24),
                 Text("Data historis Air Laut titik monitoring ${widget.nama}",
                     style:
                         TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                SizedBox(height: 8),
+                SizedBox(height: 5),
                 SensorTable(entries: currentPageEntries, startIndex: start),
-                SizedBox(height: 8),
+                SizedBox(height: 5),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [

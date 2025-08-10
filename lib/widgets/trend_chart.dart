@@ -11,7 +11,6 @@ class TrendChartWidget extends StatelessWidget {
     final phSpots = <FlSpot>[];
     final turbiditySpots = <FlSpot>[];
     final dateLabels = <String>[];
-
     final displayEntries = entries.take(30).toList().reversed.toList();
 
     for (int i = 0; i < displayEntries.length; i++) {
@@ -37,66 +36,77 @@ class TrendChartWidget extends StatelessWidget {
       );
     }
 
+    final firstLabel = dateLabels.isNotEmpty ? dateLabels.first : '';
+    final lastLabel = dateLabels.length > 1 ? dateLabels.last : '';
+    final middleLabel =
+        dateLabels.length > 2 ? dateLabels[dateLabels.length ~/ 2] : '';
+
     return Column(
       children: [
         SizedBox(
-          height: 250,
-          child: LineChart(
-            LineChartData(
-              gridData: FlGridData(show: true),
-              titlesData: FlTitlesData(
-                show: true,
-                bottomTitles: AxisTitles(
-                  sideTitles: SideTitles(
-                    showTitles: true,
-                    reservedSize: 30,
-                    getTitlesWidget: (value, meta) {
-                      if (value.toInt() >= 0 &&
-                          value.toInt() < dateLabels.length) {
-                        return SideTitleWidget(
-                          axisSide: meta.axisSide,
-                          child: Text(
-                            dateLabels[value.toInt()],
-                            style: TextStyle(fontSize: 10),
-                          ),
-                        );
-                      }
-                      return const Text('');
-                    },
+          height: 300,
+          child: Padding(
+            padding: const EdgeInsets.only(top: 20, bottom: 20),
+            child: LineChart(
+              LineChartData(
+                gridData: FlGridData(show: true),
+                titlesData: FlTitlesData(
+                  show: true,
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 30,
+                      getTitlesWidget: (value, meta) {
+                        if (value.toInt() == 0) {
+                          return SideTitleWidget(
+                              axisSide: meta.axisSide,
+                              child: Text(firstLabel,
+                                  style: TextStyle(fontSize: 10)));
+                        }
+                        if (value.toInt() == displayEntries.length - 1) {
+                          return SideTitleWidget(
+                              axisSide: meta.axisSide,
+                              child: Text(lastLabel,
+                                  style: TextStyle(fontSize: 10)));
+                        }
+                        if (middleLabel.isNotEmpty &&
+                            value.toInt() == displayEntries.length ~/ 2) {
+                          return SideTitleWidget(
+                              axisSide: meta.axisSide,
+                              child: Text(middleLabel,
+                                  style: TextStyle(fontSize: 10)));
+                        }
+                        return const Text('');
+                      },
+                    ),
                   ),
                 ),
-                leftTitles: AxisTitles(
-                  sideTitles: SideTitles(
-                    showTitles: true,
-                    reservedSize: 40,
+                borderData: FlBorderData(
+                  show: true,
+                  border: Border.all(
+                    color: Colors.grey,
+                    width: 1,
                   ),
                 ),
+                lineBarsData: [
+                  LineChartBarData(
+                    spots: phSpots,
+                    isCurved: true,
+                    color: Colors.blue,
+                    barWidth: 3,
+                    belowBarData: BarAreaData(show: false),
+                    dotData: FlDotData(show: false),
+                  ),
+                  LineChartBarData(
+                    spots: turbiditySpots,
+                    isCurved: true,
+                    color: Colors.orange,
+                    barWidth: 3,
+                    belowBarData: BarAreaData(show: false),
+                    dotData: FlDotData(show: false),
+                  ),
+                ],
               ),
-              borderData: FlBorderData(show: true),
-              minX: 0,
-              maxX: displayEntries.length > 1
-                  ? (displayEntries.length - 1).toDouble()
-                  : 1,
-              minY: 0,
-              maxY: 14,
-              lineBarsData: [
-                LineChartBarData(
-                  spots: phSpots,
-                  isCurved: true,
-                  color: Colors.blue,
-                  barWidth: 3,
-                  belowBarData: BarAreaData(show: false),
-                  dotData: FlDotData(show: false),
-                ),
-                LineChartBarData(
-                  spots: turbiditySpots,
-                  isCurved: true,
-                  color: Colors.orange,
-                  barWidth: 3,
-                  belowBarData: BarAreaData(show: false),
-                  dotData: FlDotData(show: false),
-                ),
-              ],
             ),
           ),
         ),
