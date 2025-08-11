@@ -27,8 +27,6 @@ class DetailSensorPage extends StatefulWidget {
 
 class _DetailSensorPageState extends State<DetailSensorPage> {
   final _dbRef = FirebaseDatabase.instance.ref();
-  int currentPage = 0;
-  final itemsPerPage = 5;
 
   Future<void> _deleteCard() async {
     try {
@@ -147,10 +145,6 @@ class _DetailSensorPageState extends State<DetailSensorPage> {
             ..sort((a, b) => b.key.toString().compareTo(a.key.toString()));
           final latest = entries.first.value as Map<dynamic, dynamic>;
 
-          final start = currentPage * itemsPerPage;
-          final end = (start + itemsPerPage).clamp(0, entries.length);
-          final currentPageEntries = entries.sublist(start, end);
-
           final ph = (latest['ph'] ?? 0).toDouble();
           final turbidity = (latest['turbidity'] ?? 0).toDouble();
 
@@ -188,7 +182,7 @@ class _DetailSensorPageState extends State<DetailSensorPage> {
                         TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 StandardTableWidget(),
                 SizedBox(height: 24),
-                Text("Tren pH dan Turbidity pada 30 Data Terbaru",
+                Text("Tren pH dan Turbidity tiap 30 Data Monitoring",
                     style:
                         TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 SizedBox(height: 5),
@@ -205,25 +199,7 @@ class _DetailSensorPageState extends State<DetailSensorPage> {
                     style:
                         TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 SizedBox(height: 5),
-                SensorTable(entries: currentPageEntries, startIndex: start),
-                SizedBox(height: 5),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    ElevatedButton(
-                      onPressed: currentPage > 0
-                          ? () => setState(() => currentPage--)
-                          : null,
-                      child: Text("Sebelumnya"),
-                    ),
-                    ElevatedButton(
-                      onPressed: end < entries.length
-                          ? () => setState(() => currentPage++)
-                          : null,
-                      child: Text("Selanjutnya"),
-                    ),
-                  ],
-                ),
+                SensorTable(entries: entries),
               ],
             ),
           );

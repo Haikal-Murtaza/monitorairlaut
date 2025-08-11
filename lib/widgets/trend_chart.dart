@@ -1,17 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 
-class TrendChartWidget extends StatelessWidget {
+class TrendChartWidget extends StatefulWidget {
   final List<MapEntry<dynamic, dynamic>> entries;
 
   const TrendChartWidget({required this.entries, super.key});
+
+  @override
+  State<TrendChartWidget> createState() => _TrendChartWidgetState();
+}
+
+class _TrendChartWidgetState extends State<TrendChartWidget> {
+  int currentPage = 0;
+  final int itemsPerPage = 30;
 
   @override
   Widget build(BuildContext context) {
     final phSpots = <FlSpot>[];
     final turbiditySpots = <FlSpot>[];
     final dateLabels = <String>[];
-    final displayEntries = entries.take(30).toList().reversed.toList();
+
+    // Calculate start and end indices for pagination
+    final start = currentPage * itemsPerPage;
+    var end = (start + itemsPerPage).clamp(0, widget.entries.length);
+    final displayEntries = widget.entries.sublist(start, end).reversed.toList();
 
     for (int i = 0; i < displayEntries.length; i++) {
       final entry = displayEntries[i];
@@ -40,6 +52,8 @@ class TrendChartWidget extends StatelessWidget {
     final lastLabel = dateLabels.length > 1 ? dateLabels.last : '';
     final middleLabel =
         dateLabels.length > 2 ? dateLabels[dateLabels.length ~/ 2] : '';
+
+    final totalPages = (widget.entries.length / itemsPerPage).ceil();
 
     return Column(
       children: [
@@ -116,6 +130,35 @@ class TrendChartWidget extends StatelessWidget {
             _buildLegendItem(Colors.blue, 'pH'),
             SizedBox(width: 16),
             _buildLegendItem(Colors.orange, 'Turbidity'),
+          ],
+        ),
+        SizedBox(height: 10),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ElevatedButton(
+              onPressed:
+                  currentPage > 0 ? () => setState(() => currentPage--) : null,
+              style: ElevatedButton.styleFrom(
+                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              ),
+              child: Text('Sebelumnya'),
+            ),
+            SizedBox(width: 20),
+            Text(
+              'Halaman ${currentPage + 1}/$totalPages',
+              style: TextStyle(fontSize: 14),
+            ),
+            SizedBox(width: 20),
+            ElevatedButton(
+              onPressed: end < widget.entries.length
+                  ? () => setState(() => currentPage++)
+                  : null,
+              style: ElevatedButton.styleFrom(
+                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              ),
+              child: Text('Selanjutnya'),
+            ),
           ],
         ),
       ],
